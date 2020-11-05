@@ -84,7 +84,7 @@ CREATE TABLE Question(
 -- create table 9: Answer
 DROP TABLE IF EXISTS Answer;
 CREATE TABLE Answer(
-    AnswerID				TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    Answers					TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     Content					NVARCHAR(100) NOT NULL,
     QuestionID				TINYINT UNSIGNED NOT NULL,
     isCorrect				BIT DEFAULT 1,
@@ -117,7 +117,6 @@ CREATE TABLE ExamQuestion(
 
 /*============================== INSERT DATABASE =======================================*/
 /*======================================================================================*/
--- Câu	1 : Thêm các record vào table
 -- Add data Department
 INSERT INTO Department(DepartmentName) 
 VALUES
@@ -151,7 +150,7 @@ VALUES 				('haidang29productions@gmail.com'	, 'dangblack'		,'Nguyen Hai Dang'		
                     ('songcodaoly@gmail.com'			, 'huanhoahong'		,'Bui Xuan Huan'		,   '4'			,   '2'		,'2020-04-05'),
                     ('sontungmtp@gmail.com'				, 'tungnui'			,'Nguyen Thanh Tung'	,   '3'			,   '1'		,'2020-04-07'),
                     ('duongghuu@gmail.com'				, 'duongghuu'		,'Duong Van Huu'		,   '3'			,   '2'		,'2020-04-07'),
-                    ('vtiaccademy@gmail.com'			, 'vtiaccademy'		,'Vi Ti Ai'				,   '6'			,   '1'		,'2020-04-09');
+                    ('vtiaccademy@gmail.com'			, 'vtiaccademy'		,'Vi Ti Ai'				,   '6'		,   '1'		,'2020-04-09');
 
 -- Add data Group
 INSERT INTO `Group`	(  GroupName			, CreatorID		, CreateDate)
@@ -250,66 +249,121 @@ VALUES 					(	1	,		5		),
 						(	7	,		2		), 
 						(	8	,		10		), 
 						(	9	,		9		), 
-						(	10	,		8		);
---  Question 2 : lấy ra tất cả các phòng ban      
-SELECT * 
-FROM Department                   ;
---  Question 3 : lấy ra id của phòng ban sale 
-SELECT DepartmentID
-FROM   Department
-WHERE  DepartmentName = 'sale';
---  Question 4 : lấy ra thông tin account có full name dài nhất 
--- Cách 1 
+						(	10	,		8		); 
+-- ----------------        Bai Tap ------------------------------------------------
+-- Question 1: Viết lệnh để lấy ra danh sách nhân viên và thông tin phòng ban của họ
 SELECT *
-FROM  `Account`
-WHERE  length(FullName) = (SELECT MAX(length(FullName)) 
-								FROM `Account` );
--- Cách 2                                 
---  Question 5 : Lấy ra thông tin account có full name dài nhất và thuộc phòng ban có id = 3 ( NHƯ  Question 4 )
---  Question 6 : Lấy ra tên group đã tham gia trước ngày 20/12/2019
-
-SELECT  GroupName
-FROM  `Group`
-WHERE CreateDate < '2019-12-20';
-
- -- Question 7 : Lấy ra ID của question có >= 4 câu trả lời
- SELECT QuestionID
- FROM Answer
- WHERE AnswerID >= 4;
- --  Question8 : Lấy ra các mã đề thi có thời gian thi >= 60 phút và được tạo trước ngày 20/12/2019
- SELECT `code`
- FROM Exam
- WHERE Duration >= 60 AND CreateDate < '2019-12-20';
- --  Question 9 : Lấy ra 5 group được tạo gần đây nhất
- SELECT GroupID,GroupName
- FROM `group`
- ORDER BY CreateDate DESC LIMIT 5;
- -- Question 10 : Đếm số nhân viên thuộc department có id = 2
- SELECT COUNT(*)
- FROM Department
- WHERE DepartmentID = 2;
--- Question 11 :  Lấy ra nhân viên có tên bắt đầu bằng chữ "D" và kết thúc bằng chữ "o"
+FROM `Account` 
+JOIN Department USING (DepartmentID)            ;
+-- Question 2: Viết lệnh để lấy ra thông tin các account được tạo sau ngày 20/12/2010
 SELECT *
 FROM `Account`
-WHERE Username LIKE 'D%o';
--- Question 12 : Xóa tất cả các exam được tạo trước ngày 20/12/2019
-DELETE 
-FROM Exam
-WHERE CreateDate < 2019-12-20;
--- Question 13 : Xóa tất cả các question có nội dung bắt đầu bằng từ "câu hỏi"
-DELETE
+WHERE CreateDate > '2010-12-20';
+-- Question 3: Viết lệnh để lấy ra tất cả các developer
+SELECT *
+FROM Position
+WHERE PositionName = 'Dev' ;
+-- Question 4 : Viết lệnh để lấy ra danh sách các phòng ban có >3 nhân viên
+SELECT *, COUNT(*)
+FROM `Account`
+JOIN Department USING(DepartmentID)
+GROUP BY DepartmentID
+HAVING COUNT(*) >= 3 ;
+-- Question 5: Viết lệnh để lấy ra danh sách câu hỏi được sử dụng trong đề thi nhiều nhất
+SELECT *, COUNT(*)
 FROM Question
-WHERE Content LIKE 'Câu Hỏi%';
--- Question 14: Update thông tin của account có id = 5 thành tên "Nguyễn Bá Lộc" và email thành loc.nguyenba@vti.com.vn
-UPDATE Account
-SET		FullName = 'Nguyễn Bá Lộc' ,
-		Email    = 'loc.nguyenba@vti.com.vn'
-WHERE AccountID = 5 ;
- 
--- Question 15: update account có id = 5 sẽ thuộc group có id = 4 
-UPDATE GroupAccount
-SET	 		AccountID = 5
-WHERE		GroupID   = 4;
-                        
-                        
-                        
+JOIN Exam USING(CategoryID)
+GROUP BY CategoryID 
+ORDER BY COUNT(*) DESC LIMIT 1;
+-- Question 6: Thông kê mỗi category Question được sử dụng trong bao nhiêu Question
+SELECT  *
+FROM Question q
+JOIN Exam e  ON e.CategoryID = q.CategoryID
+GROUP BY e.CategoryID 
+ORDER BY e.CategoryID ASC ;
+
+-- Question 7: Thông kê mỗi Question được sử dụng trong bao nhiêu Exam
+SELECT		Q.Content, COUNT(EQ.QuestionID)
+FROM		Question Q 
+LEFT JOIN	ExamQuestion EQ ON EQ.QuestionID = Q.QuestionID
+GROUP BY	Q.QuestionID
+ORDER BY 	EQ.ExamID ASC;
+
+-- Question 8: Lấy ra Question có nhiều câu trả lời nhất
+SELECT q.Content ,COUNT(*)
+FROM Question q
+JOIN Answer a ON a.QuestionID = q.QuestionID
+GROUP BY q.QuestionID 
+ORDER BY COUNT(*) DESC LIMIT 1;
+-- Question 9: Thống kê số lượng account trong mỗi group
+SELECT ga.GroupID , COUNT(*)
+FROM `GroupAccount` ga
+JOIN `Account`  a ON a.AccountID = ga.AccountID
+GROUP BY GroupID;
+
+-- Question 10: Tìm chức vụ có ít người nhất
+SELECT PositionName,COUNT(*)
+FROM Position
+JOIN `Account` USING(PositionID)
+GROUP BY PositionID
+ORDER BY COUNT(*) ASC LIMIT 1;
+-- Question 11: Thống kê mỗi phòng ban có bao nhiêu dev, test, scrum master, PM
+SELECT d.DepartmentName,p.PositionName, COUNT(*)
+FROM `Account` a
+Join Department d ON d.DepartmentID = a.DepartmentID
+JOIN Position p ON P.PositionID = a.PositionID
+GROUP BY d.DepartmentID ;
+
+-- Question 12: Lấy thông tin chi tiết của câu hỏi bao gồm: thông tin cơ bản của question, loại câu hỏi, ai là người tạo ra câu hỏi, câu trả lời là gì, ...
+
+SELECT 		t.TypeName AS 'Loại câu hỏi', q.CreatorID AS 'Người Hỏi', a.Content AS 'Câu Trả Lời'
+FROM		Question q 
+JOIN 	Answer a ON	q.QuestionID = a.QuestionID
+JOIN	TypeQuestion T ON q.TypeID = t.TypeID;
+-- Question 13: Lấy ra số lượng câu hỏi của mỗi loại tự luận hay trắc nghiệm
+SELECT TypeName,COUNT(*)
+FROM Question
+JOIN TypeQuestion USING(TypeID)
+GROUP BY TypeID;
+-- Question 14:Lấy ra group không có account nào
+SELECT GroupName,COUNT(*)
+FROM GroupAccount ga
+JOIN `Account` a ON a.AccountID = ga.AccountID
+JOIN `Group`  g ON g.GroupID = ga.GroupID
+GROUP BY ga.GroupID 
+HAVING COUNT(*) = 0;
+-- Question 16: Lấy ra question không có answer nào
+SELECT q.Content ,COUNT(*)
+FROM Question q
+JOIN Answer a ON a.QuestionID = q.QuestionID
+GROUP BY q.QuestionID 
+HAVING COUNT(*) = 0 ;
+-- Question 17: a) Lấy các account thuộc nhóm thứ 1
+-- b) Lấy các account thuộc nhóm thứ 2
+-- c) Ghép 2 kết quả từ câu a) và câu b) sao cho không có record nào trùng nhau
+ SELECT AccountID,FullName 
+ FROM `Account`
+ JOIN `GroupAccount` USING (AccountID)
+ WHERE GroupID = 1
+UNION
+SELECT AccountID,FullName 
+ FROM `Account`
+ JOIN `GroupAccount` USING (AccountID)
+ WHERE GroupID = 3 ;
+ -- Question 18:
+-- a) Lấy các group có lớn hơn 5 thành viên
+-- b) Lấy các group có nhỏ hơn 7 thành viên
+-- c) Ghép 2 kết quả từ câu a) và câu b)
+SELECT *, COUNT(*)
+FROM `Account`
+JOIN GroupAccount USING(AccountID)
+GROUP BY GroupID
+HAVING COUNT(*) > 5
+UNION
+SELECT *, COUNT(*)
+FROM `Account`
+JOIN GroupAccount USING(AccountID)
+GROUP BY GroupID
+HAVING COUNT(*) < 7 
+
+
